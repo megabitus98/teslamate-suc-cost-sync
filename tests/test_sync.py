@@ -96,7 +96,7 @@ def _suc(history_snapshots):
 def _cfg():
     return Config(
         teslamate_dsn="x", suc_base_url="https://suc", suc_api_key=None, car_id=None,
-        poll_interval_s=300, site_match_radius_km=0.5, energy_source="used",
+        poll_interval_s=300, suc_min_interval_s=0.0, site_match_radius_km=0.5, energy_source="used",
         target_currency="RON", fx_base_url="https://fx", refresh_geofence_rate=True,
         respect_manual_edits=True, backfill_on_start=True, backfill_since=None,
         dry_run=True, force=False, log_level="INFO")

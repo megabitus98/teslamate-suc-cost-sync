@@ -66,6 +66,22 @@ def test_retries_on_429_then_succeeds():
     assert slept == [1.0, 1.0]  # honoured Retry-After twice, no real sleep
 
 
+def test_paces_requests_under_min_interval():
+    clock = [0.0]
+    slept = []
+
+    def handler(req):
+        return httpx.Response(200, json={"sites": []})
+
+    suc = SucClient("https://suc", None, _client(handler), min_interval_s=1.1,
+                    sleep=lambda s: (slept.append(s), clock.__setitem__(0, clock[0] + s)),
+                    monotonic=lambda: clock[0])
+    suc.nearby(1.0, 2.0, 0.5)   # first: no wait
+    suc.nearby(1.0, 2.0, 0.5)   # second: must wait ~full interval (no time elapsed)
+    suc.nearby(1.0, 2.0, 0.5)
+    assert slept == [1.1, 1.1]  # first request unpaced, each subsequent spaced
+
+
 def test_raises_when_429_persists():
     def handler(req):
         return httpx.Response(429, json={})
