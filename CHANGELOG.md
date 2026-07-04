@@ -6,6 +6,14 @@ versioning follows [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-07-04
+
+### Changed
+- Release images are now multi-arch (`linux/amd64` + `linux/arm64`), so the
+  image runs natively on arm64 hosts instead of failing with `exec format
+  error`. Every release now also updates `:latest` (previously only on
+  `stable` branch pushes, not on version tags).
+
 ## [0.1.3] - 2026-07-04
 
 ### Fixed
@@ -43,7 +51,8 @@ versioning follows [SemVer](https://semver.org/).
 - Docker image, docker-compose, and Kubernetes deploy manifest.
 - CI (pytest) and Docker release pipelines publishing to GHCR.
 
-[Unreleased]: https://github.com/megabitus98/teslamate-suc-cost-sync/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/megabitus98/teslamate-suc-cost-sync/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/megabitus98/teslamate-suc-cost-sync/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/megabitus98/teslamate-suc-cost-sync/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/megabitus98/teslamate-suc-cost-sync/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/megabitus98/teslamate-suc-cost-sync/compare/v0.1.0...v0.1.1
