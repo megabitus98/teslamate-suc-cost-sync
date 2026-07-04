@@ -75,9 +75,9 @@ ON CONFLICT (charging_process_id) DO UPDATE SET
 
 
 def ensure_table(conn: psycopg.Connection) -> None:
+    # Connection is autocommit (see main._connect) — the DDL commits immediately.
     with conn.cursor() as cur:
         cur.execute(_DDL)
-    conn.commit()
 
 
 def fetch_candidates(conn: psycopg.Connection, car_id, floor_iso) -> list[dict]:

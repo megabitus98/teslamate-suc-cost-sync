@@ -6,6 +6,7 @@ class FakeConn:
         self.closed = closed
         self._rollback_raises = rollback_raises
         self.closed_called = False
+        self.autocommit = None
 
     def rollback(self):
         if self._rollback_raises:
@@ -37,6 +38,15 @@ def test_reconnects_when_closed(monkeypatch):
     fresh = _patch_connect(monkeypatch)
     dead = FakeConn(closed=True)
     assert main._healthy_conn(dead, "dsn") is fresh
+
+
+def test_connect_sets_autocommit(monkeypatch):
+    # without autocommit the per-charge transaction() never commits (writes lost)
+    fake = FakeConn()
+    monkeypatch.setattr(main.psycopg, "connect", lambda *a, **k: fake)
+    monkeypatch.setattr(main.db, "ensure_table", lambda c: None)
+    assert main._connect("dsn") is fake
+    assert fake.autocommit is True
 
 
 def test_reconnects_when_rollback_fails(monkeypatch):

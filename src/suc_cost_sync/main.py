@@ -36,6 +36,11 @@ def _connect(dsn):
     sits idle between SUC API calls."""
     conn = psycopg.connect(dsn, keepalives=1, keepalives_idle=30,
                            keepalives_interval=10, keepalives_count=5)
+    # Autocommit so each write_correction/mark_skip conn.transaction() is a real
+    # BEGIN/COMMIT. Without it the SELECT in fetch_candidates opens an implicit
+    # transaction that never commits, the per-charge transaction() degrades to a
+    # savepoint, and nothing is ever persisted.
+    conn.autocommit = True
     db.ensure_table(conn)
     return conn
 
