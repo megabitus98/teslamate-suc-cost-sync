@@ -30,6 +30,34 @@ def _start_health_server(port: int = 8080) -> None:
                      daemon=True).start()
 
 
+def _connect(dsn):
+    """Open a keepalive'd connection and ensure our tables exist. libpq
+    keepalives stop postgres from dropping the connection while a long backfill
+    sits idle between SUC API calls."""
+    conn = psycopg.connect(dsn, keepalives=1, keepalives_idle=30,
+                           keepalives_interval=10, keepalives_count=5)
+    db.ensure_table(conn)
+    return conn
+
+
+def _healthy_conn(conn, dsn):
+    """Reuse the connection if it's alive (rolling back any aborted txn),
+    otherwise replace it. A dropped connection — the crash we used to die on —
+    now just reconnects on the next pass."""
+    if conn is not None and not conn.closed:
+        try:
+            conn.rollback()
+            return conn
+        except Exception:
+            log.warning("db connection lost; reconnecting")
+    if conn is not None:
+        try:
+            conn.close()
+        except Exception:
+            pass
+    return _connect(dsn)
+
+
 def run_pass(cfg, conn, suc, fx, floor) -> dict:
     suc.clear_cache()
     tally = Counter()
@@ -50,16 +78,17 @@ def main() -> None:
     log.info("starting; target=%s energy=%s dry_run=%s floor=%s",
              cfg.target_currency, cfg.energy_source, cfg.dry_run, floor)
 
-    with httpx.Client() as http, psycopg.connect(cfg.teslamate_dsn) as conn:
-        db.ensure_table(conn)
-        suc = SucClient(cfg.suc_base_url, cfg.suc_api_key, http)
+    with httpx.Client() as http:
+        suc = SucClient(cfg.suc_base_url, cfg.suc_api_key, http,
+                        min_interval_s=cfg.suc_min_interval_s)
         fx = FxCache(cfg.fx_base_url, http)
+        conn = None
         while True:
             try:
+                conn = _healthy_conn(conn, cfg.teslamate_dsn)
                 run_pass(cfg, conn, suc, fx, floor)
             except Exception:
                 log.exception("poll pass failed; retrying next interval")
-                conn.rollback()
             time.sleep(cfg.poll_interval_s)
 
 

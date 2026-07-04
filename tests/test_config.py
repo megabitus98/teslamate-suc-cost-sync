@@ -9,6 +9,7 @@ def test_defaults(monkeypatch):
     cfg = load_config()
     assert cfg.suc_base_url == "https://suc.nitu.it"
     assert cfg.poll_interval_s == 300
+    assert cfg.suc_min_interval_s == 1.1
     assert cfg.site_match_radius_km == 0.5
     assert cfg.energy_source == "used"
     assert cfg.target_currency == "RON"

@@ -13,6 +13,7 @@ class Config:
     suc_api_key: str | None
     car_id: int | None
     poll_interval_s: int
+    suc_min_interval_s: float
     site_match_radius_km: float
     energy_source: str
     target_currency: str
@@ -40,6 +41,8 @@ def load_config() -> Config:
         suc_api_key=os.getenv("SUC_API_KEY") or None,
         car_id=int(car) if car else None,
         poll_interval_s=int(os.getenv("POLL_INTERVAL_SECONDS", "300")),
+        # SUC API allows 60 req/min per IP; 1.1s keeps a bulk backfill under it.
+        suc_min_interval_s=float(os.getenv("SUC_MIN_REQUEST_INTERVAL_S", "1.1")),
         site_match_radius_km=float(os.getenv("SITE_MATCH_RADIUS_KM", "0.5")),
         energy_source=energy,
         target_currency=os.getenv("TARGET_CURRENCY", "RON").upper(),
