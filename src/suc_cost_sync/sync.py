@@ -119,10 +119,12 @@ def process_charge(cfg, conn, suc, fx, row) -> str:
             congestion_flagged=_congestion_flagged(current),
         )
 
+        old = f"{row['cost']:.2f}" if row["cost"] is not None else "unset"
+        change = "%s -> %s %s (TOU rate %.4f %s/kWh, fx %.4f)" % (
+            old, corr.cost_target, cfg.target_currency, corr.tou_rate, site_ccy, factor)
+
         if cfg.dry_run:
-            log.info("DRY_RUN charge %s: %.2f %s -> %s %s (rate %.4f, factor %.4f)",
-                     row["id"], corr.cost_local, site_ccy, corr.cost_target,
-                     cfg.target_currency, corr.tou_rate, factor)
+            log.info("DRY_RUN charge %s: %s", row["id"], change)
             return "dry-run"
 
         with conn.transaction():
@@ -130,7 +132,7 @@ def process_charge(cfg, conn, suc, fx, row) -> str:
             if cfg.refresh_geofence_rate and row["geofence_id"] is not None:
                 peak_target = round(P.peak_rate(charging_now) * factor, 4)
                 db.refresh_geofence(conn, row["geofence_id"], peak_target)
-        log.info("charge %s: wrote %s %s", row["id"], corr.cost_target, cfg.target_currency)
+        log.info("charge %s: wrote %s", row["id"], change)
         return "written"
     except Exception:
         log.exception("charge %s: unexpected error -> skip", row.get("id"))
