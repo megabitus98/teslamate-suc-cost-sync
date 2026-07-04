@@ -1,0 +1,11 @@
+services:
+  suc-cost-sync:
+    image: teslamate-suc-cost-sync:dev
+    build: .
+    restart: unless-stopped
+    environment:
+      TESLAMATE_DB_DSN: "postgresql://teslamate:${TM_DB_PASSWORD}@database:5432/teslamate"
+      TARGET_CURRENCY: "RON"
+      DRY_RUN: "true"            # flip to false after reviewing the first backfill
+    ports:
+      - "8088:8080"             # /health

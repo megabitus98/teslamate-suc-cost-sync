@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: suc-cost-sync
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: suc-cost-sync }
+  template:
+    metadata:
+      labels: { app: suc-cost-sync }
+    spec:
+      containers:
+        - name: suc-cost-sync
+          image: teslamate-suc-cost-sync:dev
+          env:
+            - name: TESLAMATE_DB_DSN
+              valueFrom: { secretKeyRef: { name: suc-cost-sync, key: dsn } }
+            - name: TARGET_CURRENCY
+              value: "RON"
+            - name: DRY_RUN
+              value: "true"
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 10
+            periodSeconds: 30
