@@ -6,6 +6,16 @@ versioning follows [SemVer](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-07-04
+
+### Fixed
+- Corrections are now actually committed. The `SELECT` in `fetch_candidates` ran
+  in a non-autocommit connection, opening an implicit transaction that never
+  committed; each per-charge `conn.transaction()` then degraded to a savepoint,
+  so cost updates and skip markers were logged as written but silently discarded.
+  The connection now runs in autocommit, making each `transaction()` a real
+  BEGIN/COMMIT.
+
 ## [0.1.2] - 2026-07-04
 
 ### Changed
@@ -33,7 +43,8 @@ versioning follows [SemVer](https://semver.org/).
 - Docker image, docker-compose, and Kubernetes deploy manifest.
 - CI (pytest) and Docker release pipelines publishing to GHCR.
 
-[Unreleased]: https://github.com/megabitus98/teslamate-suc-cost-sync/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/megabitus98/teslamate-suc-cost-sync/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/megabitus98/teslamate-suc-cost-sync/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/megabitus98/teslamate-suc-cost-sync/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/megabitus98/teslamate-suc-cost-sync/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/megabitus98/teslamate-suc-cost-sync/releases/tag/v0.1.0
